@@ -1,0 +1,255 @@
+/* ROOT NOTES APP WRAPPER */
+.notes-app {
+    width: 100%;
+    height: 100%;
+    padding: 50px 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #181818;
+    color: #ffffff;
+    font-family: "Roboto", sans-serif;
+    font-size: 13px;
+    overflow: hidden;
+}
+
+/* HOME VIEW (LIST OF NOTES) */
+
+.notes-home {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Header bar */
+
+.notes-header {
+    background: #252525;
+    padding: 8px 10px;
+    border-bottom: 1px solid #333333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#notes-header-text {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+#notes-header-count {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* List area */
+
+.notes-list {
+    flex: 1;
+    padding: 8px;
+    overflow-y: auto;
+}
+
+.notes-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.notes-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notes-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+/* Each note item */
+
+.note-item {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 6px;
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: background 0.1s ease, transform 0.05s ease;
+}
+
+.note-item:last-child {
+    margin-bottom: 0;
+}
+
+.note-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
+.note-item.active {
+    background: rgba(245, 196, 81, 0.22);
+}
+
+.note-item-title {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.note-item-preview {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Empty state text */
+
+.notes-empty {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+    text-align: center;
+    padding: 12px 4px;
+}
+
+/* Footer with "new" button */
+
+.notes-footer {
+    background: #252525;
+    padding: 6px 0;
+    border-top: 1px solid #333333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.notes-footer-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notes-footer-item i {
+    font-size: 20px;
+    color: #f5c451;
+    cursor: pointer;
+    transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+.notes-footer-item i:active {
+    transform: scale(0.95);
+    opacity: 0.85;
+}
+
+/* OPENED NOTE VIEW (EDITOR) */
+
+.opened-note {
+    display: none; /* JS will toggle this and .notes-home */
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Editor header */
+
+.opened-note-header {
+    background: #252525;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #333333;
+}
+
+.note-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+}
+
+.note-back i {
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.note-title {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+#note-title-input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+#note-title-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* The whole editor container */
+.opened-note {
+    display: flex;
+    flex-direction: column;
+    height: 100%;           /* fill full phone height */
+}
+
+/* Header stays fixed height at top */
+.opened-note-header {
+    flex-shrink: 0;
+}
+
+/* Body expands between header and footer */
+.opened-note-body {
+    flex: 1;                /* takes all remaining space */
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+/* Textarea fills entire body */
+#note-content-input {
+    flex: 1;
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: #ffffff;
+    font-size: 13px;
+    line-height: 1.35;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+/* Footer stays pinned at bottom */
+.opened-note-footer {
+    flex-shrink: 0;
+    background: #252525;
+    padding: 10px 0;        /* 10px breathing room */
+    border-top: 1px solid #333333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+}
+
+.opened-note-footer-item i {
+    font-size: 18px;
+    color: #f5c451;
+    cursor: pointer;
+    transition: transform 0.08s ease, opacity 0.08s ease;
+}
+
+.opened-note-footer-item i:active {
+    transform: scale(0.95);
+    opacity: 0.85;
+}
+
