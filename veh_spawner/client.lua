@@ -61,7 +61,7 @@ end
 
 -- Chat command: /car adder
 RegisterCommand('car', function(source, args)
-    local modelName = args[1] or "adder" -- default to adder if no arg
+    local modelName = args[1] or "hycrh7" -- default to adder if no arg
     spawnVehicle(modelName)
 end, false)
 

@@ -13,7 +13,8 @@ local DANGER_MODELS = {
     862871082,
     -97646180,
     -1063472968,
-    431612653
+    431612653,
+    681787797
 }
 
 local CLEAN_RADIUS       = 80.0
@@ -82,6 +83,53 @@ local function RunLamppurgePass(tag)
     EndFindObject(handle)
 end
 
+function PurgeAllFallenPropsAroundPlayer(tag)
+    local ped = PlayerPedId()
+    if not DoesEntityExist(ped) then return 0 end
+
+    local pCoords = GetEntityCoords(ped)
+
+    local handle, entity = FindFirstObject()
+    if handle == -1 then return 0 end
+
+    local success = true
+    local deleted = 0
+
+    repeat
+        if DoesEntityExist(entity) then
+            local model = GetEntityModel(entity)
+
+            if isDangerModel(model) then
+                local eCoords = GetEntityCoords(entity)
+                local dist    = #(eCoords - pCoords)
+
+                if dist <= CLEAN_RADIUS then
+                    local upright, pitch, roll = isEntityUprightByRotation(entity, UPRIGHT_THRESHOLD)
+                    local inAir = IsEntityInAir(entity)
+
+                    if not upright or inAir then
+                        print(("[Lamppurge%s] deleting model %s at dist %.1f (pitch %.1f roll %.1f inAir %s)")
+                            :format(tag or "", tostring(model), dist, pitch, roll, tostring(inAir)))
+
+                        SetEntityAsMissionEntity(entity, true, true)
+                        DeleteObject(entity)
+                        deleted = deleted + 1
+                        -- note: no break - we keep going and catch all pieces
+                    end
+                end
+            end
+        end
+
+        success, entity = FindNextObject(handle)
+        Wait(0)
+    until not success
+
+    EndFindObject(handle)
+
+    return deleted
+end
+
+
 -- Auto during active race
 CreateThread(function()
     while true do
@@ -89,7 +137,7 @@ CreateThread(function()
         and CurrentRaceData.RaceName ~= nil
         and CurrentRaceData.Started
         then
-            RunLamppurgePass("")
+            PurgeAllFallenPropsAroundPlayer("")
         end
 
         Wait(CHECK_INTERVAL_MS)
