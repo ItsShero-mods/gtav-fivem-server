@@ -382,7 +382,7 @@ QBShared.Items = {
     newscam                      = { name = 'newscam', label = 'News Camera', weight = 100, type = 'item', image = 'newscam.png', unique = true, useable = true, shouldClose = true, description = 'A camera for the news' },
     newsmic                      = { name = 'newsmic', label = 'News Microphone', weight = 100, type = 'item', image = 'newsmic.png', unique = true, useable = true, shouldClose = true, description = 'A microphone for the news' },
     newsbmic                     = { name = 'newsbmic', label = 'Boom Microphone', weight = 100, type = 'item', image = 'newsbmic.png', unique = true, useable = true, shouldClose = true, description = 'A Useable BoomMic' },
-    stack_of_money               = { name = 'stack_of_money', label = 'Stack of Money', weight = 1, type = 'item', image = 'stack_of_money.png', unique = false, useable = false, shouldClose = false, description = 'A stack of cold, hard cash' },
+    stack_of_money               = { name = 'stack_of_money', label = 'Stack of Money', weight = 0, type = 'item', image = 'stack_of_money.png', unique = false, useable = false, shouldClose = false, description = 'A stack of cold, hard cash' },
 
     -- Crafting table's
     item_bench = {name = "item_bench", label = "Workbench", weight = 15000, type = "item", image = "workbench.png", unique = true, useable = true, shouldClose = false, combinable = nil, description = "A workbench to craft items."},
