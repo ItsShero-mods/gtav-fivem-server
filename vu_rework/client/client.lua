@@ -63,25 +63,7 @@ RegisterCommand("deleteTestPed", function()
     TriggerServerEvent("testped:deleteForEveryone")
 end)
 
-function InteractWithPed()
-    if not pedEntity or not DoesEntityExist(pedEntity) then
-        print("[TestPed] No ped to interact with.")
-        return
-    end
-
-    -- player animation
-    PlayMakeItRainAnim()
-
-    -- ped reaction
-    PlayPedAmbientSpeechNative(pedEntity, "GENERIC_HI", "SPEECH_PARAMS_FORCE")
-
-    print("[TestPed] Interaction successful.")
-end
-
-local rainFx = nil
-
 function StartRainLoop()
-    print("^2[DEBUG] StartRainLoop called!^0")  
     if isRainingMoney then return end
     
 
@@ -100,7 +82,6 @@ function StartRainLoop()
     
     CreateThread(function()
         Wait(0)
-        print("^2[DEBUG] Starting Animation!^0")  
         while isRainingMoney do
             -- Play the animation
             TaskPlayAnim(ped, dict, anim, 4.0, -4.0, -1, 49, 0, false, false, false)
@@ -126,7 +107,6 @@ end
 
 RegisterNetEvent("vu:rainTick")
 AddEventHandler("vu:rainTick", function(item, clean)
-    print(("[VU] Laundered one '%s' into $%d clean"):format(item, clean))
     lib.notify({
         title = Config.UI.notifications.success.title,
         description = "1 bill cleaned", "success",
@@ -149,7 +129,6 @@ CreateThread(function()
             local dist = #(playerCoords - pedCoords)
             -- G Key (47)
             if (dist < 3.0 and IsControlJustPressed(0, 47)) then
-                print("[VU Debug]: I'm cleaning cash")
                 if cooldown then
                     local remaining = math.floor((cooldownEnd - GetGameTimer()) / 1000)
                     if remaining < 0 then remaining = 0 end
@@ -173,7 +152,6 @@ CreateThread(function()
 
             -- X Key (73)
             if (dist >= 3.0 or IsControlJustPressed(0, 73)) and isRainingMoney then
-                print("[VU Debug]: I'm stopping throwing cash")
                 StopRainLoop()
                 lib.notify({
                     title = Config.UI.notifications.error.title,
@@ -186,7 +164,6 @@ CreateThread(function()
                 CreateThread(function()
                     Wait(5000)    -- 3 second cooldown
                     cooldown = false
-                    print("[VU Debug] Cooldown over")
                 end)
             end
         end
