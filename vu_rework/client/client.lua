@@ -1,7 +1,6 @@
 local pedNetId = nil
 local pedEntity = nil
 local isRainingMoney = false
-local rainStarting = false
 
 -------------------------------------------------------
 -- SPAWN PED (broadcast from server)
@@ -79,17 +78,17 @@ function InteractWithPed()
     print("[TestPed] Interaction successful.")
 end
 
+local rainFx = nil
+
 function StartRainLoop()
     print("^2[DEBUG] StartRainLoop called!^0")  
-    if isRainingMoney or rainStarting then return end
+    if isRainingMoney then return end
     
-    rainStarting = true
 
         -- delay 1 frame before enabling the loop
     CreateThread(function()
         Wait(0)
         isRainingMoney = true
-        rainStarting = false
     end)
 
     local ped = PlayerPedId()
@@ -98,34 +97,30 @@ function StartRainLoop()
 
     RequestAnimDict(dict)
     while not HasAnimDictLoaded(dict) do Wait(0) end
-
+    
     CreateThread(function()
-        Wait(1)
+        Wait(0)
         print("^2[DEBUG] Starting Animation!^0")  
-        print(isRainingMoney)
         while isRainingMoney do
             -- Play the animation
             TaskPlayAnim(ped, dict, anim, 4.0, -4.0, -1, 49, 0, false, false, false)
-
-            Wait(4000) -- adjust this for loop speed
+            Wait(5000) -- adjust this for loop speed
         end
-
         -- Clear anim when loop stops
         ClearPedTasks(ped)
     end)
 
-    -- MONEY LOOP — every 5 seconds remove 1 stack and give clean
+    -- MONEY LOOP — every 10 seconds remove 1 stack and give clean
     CreateThread(function()
-        Wait(10000)
+        Wait(5000)
         while isRainingMoney do
             TriggerServerEvent("vu:launderOneBill")
-            Wait(10000)
+            Wait(5000)
         end
     end)
 end
 
 function StopRainLoop()
-    if not isRainingMoney then return end
     isRainingMoney = false
 end
 
@@ -139,11 +134,12 @@ AddEventHandler("vu:rainTick", function(item, clean)
     })
 end)
 
+
+local cooldown = false
+local cooldownEnd
 CreateThread(function()
-    local canInteract = true
     while true do
         Wait(0)
-
 
         -- Only interact if ped exists
         if pedEntity and DoesEntityExist(pedEntity) then
@@ -152,37 +148,48 @@ CreateThread(function()
             local pedCoords = GetEntityCoords(pedEntity)
             local dist = #(playerCoords - pedCoords)
             -- G Key (47)
-            if dist < 3.0 and IsControlJustPressed(0, 47) and canInteract then
+            if (dist < 3.0 and IsControlJustPressed(0, 47)) then
                 print("[VU Debug]: I'm cleaning cash")
-                canInteract = false
-                if not isRainingMoney and not rainStarting then
-                    StartRainLoop()
+                if cooldown then
+                    local remaining = math.floor((cooldownEnd - GetGameTimer()) / 1000)
+                    if remaining < 0 then remaining = 0 end
                     lib.notify({
-                        title = Config.UI.notifications.start.title,
-                        description = "Started throwing money", "success",
-                        type = Config.UI.notifications.start.type
+                        title = Config.UI.notifications.cooldown.title,
+                        description = ("%d seconds left"):format(remaining),
+                        type = Config.UI.notifications.cooldown.type
                     })
-                SetTimeout(600, function()
-                    canInteract = true -- UNLOCK
-                end)
+                    Wait(1000)
+                else
+                    if not isRainingMoney then
+                        StartRainLoop()
+                        lib.notify({
+                            title = Config.UI.notifications.start.title,
+                            description = "Started throwing money", "success",
+                            type = Config.UI.notifications.start.type
+                        })
+                    end
                 end
             end
 
-
             -- X Key (73)
-            if (dist >= 3.0 or IsControlJustPressed(0, 73)) and isRainingMoney and canInteract then
+            if (dist >= 3.0 or IsControlJustPressed(0, 73)) and isRainingMoney then
                 print("[VU Debug]: I'm stopping throwing cash")
-                canInteract = false
                 StopRainLoop()
                 lib.notify({
                     title = Config.UI.notifications.error.title,
                     description = "Stopped throwing money", "success",
                     type = Config.UI.notifications.error.type
                 })
-                SetTimeout(600, function()
-                    canInteract = true -- UNLOCK
+                -- start cooldown without freezing this loop
+                cooldown = true
+                cooldownEnd = GetGameTimer() + 6000
+                CreateThread(function()
+                    Wait(5000)    -- 3 second cooldown
+                    cooldown = false
+                    print("[VU Debug] Cooldown over")
                 end)
             end
         end
     end
 end)
+

@@ -15,6 +15,10 @@ Config.UI = {
         error = {
             title = 'Stopped Throwing',
             type = 'error'
+        },
+        cooldown = {
+            title = "On Cooldown",
+            type = 'error'
         }
     }
 }
