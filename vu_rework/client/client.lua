@@ -136,7 +136,8 @@ function StartRainLoop()
         Wait(2)
 
         while isRainingMoney do
-            local delay = math.random(60000, 120000)
+            --local delay = 5000
+            local delay = math.random(30000, 90000)
             Wait(delay)
 
             if not isRainingMoney then break end
@@ -144,13 +145,15 @@ function StartRainLoop()
             activeSequence = generateSequence(math.random(6,7))
             seqIndex = 1
             seqActive = true
-            seqTimeout = GetGameTimer() + 10000
+            seqTimeout = GetGameTimer() + 5000
 
             -- Enable NUI
             SetNuiFocus(true, true)
+            print("Sending showChallange")
             SendNUIMessage({
                 action = "showChallenge",
-                sequence = activeSequence
+                sequence = activeSequence,
+                timer = 5000
             })
 
             -- Wait until sequence ends
@@ -165,6 +168,7 @@ function StopRainLoop()
     isRainingMoney = false
     seqActive = false
     activeSequence = nil
+    ClearPedTasksImmediately(PlayerPedId())
 end
 
 RegisterNetEvent("vu:rainTick")
@@ -180,6 +184,14 @@ end)
 local cooldown = false
 local cooldownEnd
 
+function CoolDownTimer()
+    cooldown = true
+    cooldownEnd = GetGameTimer() + 6000
+    CreateThread(function()
+        Wait(5000)    -- 5 second cooldown
+        cooldown = false
+    end)
+end
 
 CreateThread(function()
     while true do
@@ -191,6 +203,9 @@ CreateThread(function()
                 seqActive = false
                 activeSequence = nil
                 StopRainLoop()
+                SetNuiFocus(false, false)
+                SendNUIMessage({ action = "hideChallenge" })
+                CoolDownTimer()
                 lib.notify({ title = "Failed", description = "You were too slow!", type = "error" })
             end
         end
@@ -219,7 +234,7 @@ CreateThread(function()
                         description = ("%d seconds left"):format(remaining),
                         type = Config.UI.notifications.cooldown.type
                     })
-                    Wait(1000)
+                    Wait(1000) -- Second wait to prevent spamming notifications
                 else
                     if not isRainingMoney then
                         StartRainLoop()
@@ -241,12 +256,7 @@ CreateThread(function()
                     type = Config.UI.notifications.error.type
                 })
                 -- start cooldown without freezing this loop
-                cooldown = true
-                cooldownEnd = GetGameTimer() + 6000
-                CreateThread(function()
-                    Wait(5000)    -- 3 second cooldown
-                    cooldown = false
-                end)
+                CoolDownTimer()
             end
             -- WASD AntiAFK
             if seqActive and activeSequence then
@@ -313,6 +323,7 @@ RegisterNUICallback("failSequence", function(_, cb)
         description = "You missed the sequence!",
         type = "error"
     })
+    CoolDownTimer()
 
     cb("ok")
 end)
