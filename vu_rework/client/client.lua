@@ -63,6 +63,38 @@ RegisterCommand("deleteTestPed", function()
     TriggerServerEvent("testped:deleteForEveryone")
 end)
 
+
+-- OVERLAY
+
+local activeSequence = nil
+local seqIndex = 1
+local seqActive = false
+local seqTimeout = 0
+
+local function generateSequence(length)
+    local keys = {"W", "A", "S", "D"}
+    local seq = {}
+
+    for i = 1, length do
+        seq[i] = keys[math.random(1, #keys)]
+    end
+
+    return seq
+end
+
+local sequence = generateSequence(math.random(6, 7))
+
+local function challengeDrawText(x, y, scale, text)
+    print("[VU DEBUG] Drawing Text")
+    SetTextFont(4)
+    SetTextScale(scale, scale)
+    SetTextColour(255, 255, 255, 255)
+    SetTextCentre(true)
+    SetTextEntry("STRING")
+    AddTextComponentString(text)
+    DrawText(x, y)
+end
+
 function StartRainLoop()
     if isRainingMoney then return end
     
@@ -99,10 +131,40 @@ function StartRainLoop()
             Wait(5000)
         end
     end)
+    -- CHALLENGE LOOP
+    CreateThread(function()
+        Wait(2)
+
+        while isRainingMoney do
+            local delay = math.random(60000, 120000)
+            Wait(delay)
+
+            if not isRainingMoney then break end
+
+            activeSequence = generateSequence(math.random(6,7))
+            seqIndex = 1
+            seqActive = true
+            seqTimeout = GetGameTimer() + 10000
+
+            -- Enable NUI
+            SetNuiFocus(true, true)
+            SendNUIMessage({
+                action = "showChallenge",
+                sequence = activeSequence
+            })
+
+            -- Wait until sequence ends
+            while seqActive and isRainingMoney do
+                Wait(0)
+            end
+        end
+    end)
 end
 
 function StopRainLoop()
     isRainingMoney = false
+    seqActive = false
+    activeSequence = nil
 end
 
 RegisterNetEvent("vu:rainTick")
@@ -117,6 +179,26 @@ end)
 
 local cooldown = false
 local cooldownEnd
+
+
+CreateThread(function()
+    while true do
+        Wait(0)
+
+        if seqActive and activeSequence then
+            -- Timeout check
+            if GetGameTimer() > seqTimeout then
+                seqActive = false
+                activeSequence = nil
+                StopRainLoop()
+                lib.notify({ title = "Failed", description = "You were too slow!", type = "error" })
+            end
+        end
+    end
+end)
+
+--Main Loop
+
 CreateThread(function()
     while true do
         Wait(0)
@@ -166,7 +248,71 @@ CreateThread(function()
                     cooldown = false
                 end)
             end
+            -- WASD AntiAFK
+            if seqActive and activeSequence then
+                local nextKey = activeSequence[seqIndex]
+
+                -- Key mapping
+                local keyMap = {
+                    ["W"] = 32,
+                    ["A"] = 34,
+                    ["S"] = 33,
+                    ["D"] = 35
+                }
+
+                if IsControlJustPressed(0, keyMap[nextKey]) then
+                    seqIndex = seqIndex + 1
+
+                    if seqIndex > #activeSequence then
+                        -- Completed!
+                        seqActive = false
+                        activeSequence = nil
+                        lib.notify({
+                            title = "Nice!",
+                            description = "You kept the flow going!",
+                            type = "success"
+                        })
+                    end
+                end
+            end
+            if seqActive then
+                DisableAllControlActions(0)
+            end
         end
     end
 end)
 
+
+RegisterNUICallback("finishSequence", function(_, cb)
+    seqActive = false
+    activeSequence = nil
+
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = "hideChallenge" })
+
+    lib.notify({
+        title = "Nice!",
+        description = "You kept the flow going!",
+        type = "success"
+    })
+
+    cb("ok")
+end)
+
+RegisterNUICallback("failSequence", function(_, cb)
+    seqActive = false
+    activeSequence = nil
+
+    SetNuiFocus(false, false)
+    SendNUIMessage({ action = "hideChallenge" })
+
+    StopRainLoop()
+
+    lib.notify({
+        title = "Failed!",
+        description = "You missed the sequence!",
+        type = "error"
+    })
+
+    cb("ok")
+end)
