@@ -7,6 +7,10 @@ local STACK_VALUE = 1000           -- how much one stack is "worth"
 
 RegisterNetEvent("testped:spawnForEveryone")
 AddEventHandler("testped:spawnForEveryone", function(coords, heading)
+    if pedNetId ~= nil then
+      TriggerClientEvent("testped:deletePed", -1, pedNetId)
+      pedNetId = nil
+    end
     TriggerClientEvent("testped:createPed", -1, coords, heading)
 end)
 
